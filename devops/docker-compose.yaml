@@ -1,0 +1,86 @@
+services:
+  postgres:
+    image: postgres:15
+    container_name: saam_postgres
+    restart: always
+    shm_size: 128mb
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - ../postgres-data:/var/lib/postgresql/data
+
+  # n8n_restore:
+  #   image: alpine:latest
+  #   container_name: saam_n8n_restore
+  #   working_dir: /backup
+  #   command: >
+  #     sh -c "
+  #       if [ -z \"$(ls -A /volume)\" ]; then
+  #         echo '🗂️ Volume vazio. Restaurando backup do N8N...';
+  #         tar xzf /backup/n8n_volume.tar.gz -C /volume;
+  #         echo '✅ Backup restaurado com sucesso!';
+  #       else
+  #         echo '📦 Volume já possui dados. Pular restauração.';
+  #       fi
+  #     "
+  #   volumes:
+  #     - n8n_data:/volume
+  #     - ../backups:/backup
+
+  # n8n:
+  #   image: n8nio/n8n:latest
+  #   container_name: saam_n8n
+  #   restart: always
+  #   ports:
+  #     - "${N8N_PORT}:5678"
+  #   extra_hosts:
+  #     - "host.docker.internal:host-gateway"
+  #   environment:
+  #     DB_TYPE: postgresdb
+  #     DB_POSTGRESDB_HOST: postgres
+  #     DB_POSTGRESDB_PORT: 5432
+  #     DB_POSTGRESDB_DATABASE: ${POSTGRES_DB}
+  #     DB_POSTGRESDB_USER: ${POSTGRES_USER}
+  #     DB_POSTGRESDB_PASSWORD: ${POSTGRES_PASSWORD}
+  #     GENERIC_TIMEZONE: America/Sao_Paulo
+  #     N8N_ENV: ${N8N_ENV}
+  #     N8N_BASIC_AUTH_ACTIVE: "true"
+  #     N8N_BASIC_AUTH_USER: ${N8N_BASIC_AUTH_USER}
+  #     N8N_BASIC_AUTH_PASSWORD: ${N8N_BASIC_AUTH_PASSWORD}
+  #     WEBHOOK_TUNNEL_URL: http://host.docker.internal:${N8N_PORT}
+  #   volumes:
+  #     - n8n_data:/home/node/.n8n
+  #   depends_on:
+  #     - postgres
+  #     - n8n_restore
+
+  backend:
+    build: ../backend
+    container_name: saam_backend
+    restart: always
+    ports:
+      - "${SPRING_PORT}:5000"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILE}
+    depends_on:
+      - postgres
+
+  frontend:
+    build: ../frontend
+    container_name: saam_frontend
+    restart: always
+    ports:
+      - "${REACT_PORT}:3000"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+  n8n_data:
