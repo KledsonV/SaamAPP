@@ -1,0 +1,4 @@
+backend/mvnw.cmd text eol=crlf
+
+* text=auto
+*.sh text eol=lf
