@@ -142,7 +142,7 @@ export const DashboardPage: React.FC = () => {
             Ações Rápidas
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Link to="/products" className="w-full">
+            <Link to="/produtos" className="w-full">
               <Button
                 className="w-full h-auto p-5 justify-start text-left border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm hover:shadow-md rounded-xl"
                 variant="outline"
